@@ -80,12 +80,14 @@ pip install -r requirements.txt
 - Generate training and testing files
 
 ```bash
+mkdir sample
 python3 generate_sample.py
 ```
 
 - Train classification model
 
 ```bash
+mkdir params results
 mkdir -p results/xgb_classifier_result
 python3 train.py -md xgb_classifier --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv > results/xgb_classifier_result/xgb_classifier_train.log
 ```
