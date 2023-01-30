@@ -80,7 +80,6 @@ pip install -r requirements.txt
 - Generate training and testing files
 
 ```bash
-mkdir sample
 python3 generate_sample.py
 ```
 
