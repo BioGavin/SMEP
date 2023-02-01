@@ -66,7 +66,8 @@ python3 ../featured_data_generated/cal_pep_des.py
 - Download resource
 
 ```bash
-git clone ...
+git clone https://github.com/BioGavin/SMEP.git
+cd SMEP
 ```
 
 - Create conda env
@@ -87,7 +88,7 @@ python3 generate_sample.py
 - Train classification model
 
 ```bash
-mkdir params results
+mkdir params
 mkdir -p results/xgb_classifier_result
 python3 train.py -md xgb_classifier --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv > results/xgb_classifier_result/xgb_classifier_train.log
 ```
@@ -103,19 +104,32 @@ python3 train.py -md xgb_rank --train_xgb_file sample/classify_sample.csv --test
 
 ```bash
 mkdir -p results/lstm_result/regress
-python3 train.py -md lstm --train_lstm_file sample/regression_train_sample.csv --test_lstm_file sample/regression_test_sample.csv
+python3 train.py -md lstm --train_lstm_file sample/regression_train_sample.csv --test_lstm_file sample/regression_test_sample.csv > results/lstm_result/lstm_result_train.log
 ```
 
 - Incremental learning
 
 ```bash
-python3 lstm_fine_tune.py --lstm_param_path params/... --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/...
+python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/finetune
+
+python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path ft
 ```
 
 - Predict
 
 ```bash
+# Generate structual data for sequences
+python3 ../featured_data_generated/cal_pep_des.py
+
+# predict
 mkdir prediction_results
-python3 predict.py --lstm_param_path params/.pth --lstm_result_save_path prediction_results --train_xgb_file featured_training_data.csv --test_xgb_file featured_test_data.csv --predict_xgb_classifier_file featured_sequence_for_searching.csv --save_xgb_classify_result True
+python3 predict.py --lstm_param_path params/finetune --lstm_result_save_path prediction_results --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv --predict_xgb_classifier_file sample/data_for_search.csv --save_xgb_classify_result True
 ```
 
+
+
+`prediction_results/classifier_feature_data.csv`: Positive result data predicted by XGBoost classification model.
+
+`prediction_results/xgboost_classify.txt`: Positive sequences predicted by XGBoost classification model.
+
+`prediction_results/top_500.csv`: The top 500 sequences predicted by the XGBoost sorting model.

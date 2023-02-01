@@ -21,13 +21,15 @@ class Predict():
         self.test_xgb_file = test_xgb_file
 
     def __call__(self, *args, **kwargs):
-        pos_feature_data = self.xgb_classifier_predict()
+        # 1. XGBoost 分类模型预测
+        pos_feature_data = self.xgb_classifier_predict()  # 利用 xgb 分类器预测获取阳性结果
         xgboost_classify = pos_feature_data["sequence"].values.tolist()
-        with open("xgboost_classify.txt", "w") as f:
+        with open(os.path.join(self.lstm_result_save_path, "xgboost_classify.txt"), "w") as f:
             for i in range(len(xgboost_classify)):
                 f.write(xgboost_classify[i])
                 f.write("\n")
             f.close()
+        # 2. XGBoost 排序模型预测
         xgb_rank_model = self.get_xgb_rank_model()
         xgb_rank_result = xgb_rank_model.predict(pos_feature_data.iloc[:, 1:].values)
         dataframe = pd.DataFrame([])
@@ -37,27 +39,28 @@ class Predict():
         dataframe.reset_index(drop=True, inplace=True)
         self.sequence = dataframe["sequence"].values[0:500]
         print(self.sequence)
-        dataframe.iloc[:500, :].to_csv("8047_rank_500_all.csv")
+        dataframe.iloc[:500, :].to_csv(os.path.join(self.lstm_result_save_path, "top_500.csv"))
+        # 3. LSTM 回归模型预测
         self.lstm_preidct()
 
     def xgb_classifier_predict(self):
-        xgb_cls_model = self.get_xgb_classifier_model()
+        xgb_cls_model = self.get_xgb_classifier_model()  # 获取 xgb 分类器模型
         data_test = pd.read_csv(self.predict_xgb_classifer_file, chunksize=50000, encoding="utf-8", low_memory=False)
         df = pd.DataFrame([])
         for chunk in data_test:
             y = xgb_cls_model.predict(chunk.iloc[:, 1:].values)
-            mask = [bool(x) for x in y]
-            data = chunk[mask]
-            df = pd.concat([df, data])
-            print(df.describe())
-        df.reset_index(drop=True, inplace=True)
+            mask = [bool(x) for x in y]  # 预测值y转为bool值，0为False，1为True
+            data = chunk[mask]  # 筛选出阳性结果
+            df = pd.concat([df, data])  # 合并所有阳性结果
+            print(df.describe())  # 统计每列的平均值、标准差等数据
+        df.reset_index(drop=True, inplace=True)  # 重置索引
         if save_xgb_classify_result:
-            df.to_csv(self.lstm_result_save_path + "classifier_feature_data.csv", index=False)
-        return df
+            df.to_csv(os.path.join(self.lstm_result_save_path, "classifier_feature_data.csv"), index=False)
+        return df  # 经分类模型预测的阳性结果，第一列为序列，后676列为特征值
 
     def get_xgb_classifier_model(self):
         x_train, x_test, y_train, y_test = get_train_xgb_classifier_data(self.train_xgb_file,
-                                                                         self.test_xgb_file)
+                                                                         self.test_xgb_file)  # train和test数据要分开准备
         xgb_cls_model = XgbClassify()
         xgb_cls_model.fit(x_train, y_train, eval_metric='auc')
         y_pred = xgb_cls_model.predict(x_test)
@@ -75,18 +78,18 @@ class Predict():
         df = pd.DataFrame(test_data["sequence"].copy(), columns=["sequence"])
         y_pred = xgb_rank_model.predict(x_test)
         df["MIC"] = y_pred
-        df.sort_values("MIC", inplace=True)
+        df.sort_values("MIC", inplace=True)  # 将预测的MIC值从小到大排序
         df.reset_index(drop=True, inplace=True)
         for k in [50, 100, 500]:
-            true_sequecne_topk = test_data.iloc[0:k, ]["sequence"]
-            pred_sequence_topk = df.iloc[0:k, ]["sequence"]
+            true_sequecne_topk = test_data.iloc[0:k, ]["sequence"]  # 真实的 Top k 序列
+            pred_sequence_topk = df.iloc[0:k, ]["sequence"]  # 预测的 Top k 序列
             score = 0
             for i in true_sequecne_topk:
                 for j in pred_sequence_topk:
                     if i == j:
                         score += 1
             topk = score / k
-            print(f"xgb_rank_model top{k}:", topk)
+            print(f"xgb_rank_model top{k}:", topk)  # topk 表示预测的前k条序列中有多少是在真实的前k条序列中的
         return xgb_rank_model
 
     def lstm_preidct(self):
@@ -94,7 +97,7 @@ class Predict():
         if torch.cuda.is_available():
             net.load_state_dict(torch.load(self.param_path, map_location=lambda storage, loc: storage.cuda(device_num)))
         else:
-            net.load_state_dict(torch.load(self.param_path))
+            net.load_state_dict(torch.load(self.param_path, map_location=torch.device('cpu')))
         net.to(device)
         net.eval()
         dataset = PredictDataset(self.sequence)
@@ -111,7 +114,7 @@ class Predict():
         df = pd.DataFrame({"sequence": sequence, "predict": predict})
         df.sort_values("predict", inplace=True)
         # print(df)
-        df.to_csv(self.lstm_result_save_path + "lstm_result.csv", index=False)
+        df.to_csv(os.path.join(self.lstm_result_save_path, "lstm_result.csv"), index=False)
 
 
 if __name__ == '__main__':
@@ -130,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument("-en", "--epoch_num", type=int, default=100)
     parser.add_argument("-f", "--fmin", type=int, default=1)
     parser.add_argument("-lpp", "--lstm_param_path", type=str, default="path_to_params")
-    parser.add_argument("-sfp", "--lstm_result_save_path", type=str, default="path_to_save_finetune_params")
+    parser.add_argument("-sfp", "--result_save_path", type=str, default="path_to_save_prediction_results")
     parser.add_argument("--train_xgb_file", type=str,
                         default="path_to_featured_training_set")
     parser.add_argument("--test_xgb_file", type=str,
@@ -160,6 +163,6 @@ if __name__ == '__main__':
     else:
         save_xgb_classify_result = False
 
-    predict = Predict(args.lstm_param_path, args.lstm_result_save_path, args.train_xgb_file,
-                      args.test_xgb_file, args.predict_xgb_classifer_file)
+    predict = Predict(args.lstm_param_path, args.result_save_path, args.train_xgb_file,
+                      args.test_xgb_file, args.predict_xgb_classifier_file)
     predict()

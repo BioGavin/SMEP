@@ -163,26 +163,24 @@ def evaluate_customized(model, test_y, predict_y):
 def get_train_xgb_classifier_data(train_data_path, test_data_path):
     train_data = pd.read_csv(train_data_path, encoding="utf8", index_col=0)
     test_data = pd.read_csv(test_data_path, encoding="utf8", index_col=0)
-    x_train = train_data.iloc[:, 1:-2].values
+    x_train = train_data.iloc[:, 1:-2].values  # 676维度的特征表示
     x_test = test_data.iloc[:, 1:-2].values
-    y_train = train_data.iloc[:, -1].values
+    y_train = train_data.iloc[:, -1].values  # type值，0表示无活性，1表示有活性
     y_test = test_data.iloc[:, -1].values
-    # print(y_test)
     return x_train, x_test, y_train, y_test
 
 
 def get_train_xgb_rank_featured_data(train_data_path, test_data_path):
     train_data = pd.read_csv(train_data_path, encoding="utf8", index_col=0)
     test_data = pd.read_csv(test_data_path, encoding="utf8", index_col=0)
-    # 将测试数据按MIC值从小到大排序
-    test_data.sort_values("MIC", inplace=True)
-    x_train = train_data.iloc[:, 1:-2].values
+    test_data.sort_values("MIC", inplace=True)  # 将测试数据按MIC值从小到大排序
+    x_train = train_data.iloc[:, 1:-2].values  # 676维度的特征表示
     x_test = test_data.iloc[:, 1:-2].values
-
-    y_train = np.log10(train_data.iloc[:, -2].values)
+    y_train = np.log10(train_data.iloc[:, -2].values)  # 将MIC值取对数
     y_test = np.log10(test_data.iloc[:, -2].values)
-    # print(y_test)
+
     return x_train, x_test, y_train, y_test, test_data
+
 
 def get_concat_rank_top_k(k):
     rank_path = "/home/xyc/peptide/predict_result/rank_result"
@@ -192,7 +190,7 @@ def get_concat_rank_top_k(k):
     topk_seq = []
     rank_file_list.sort()
     for file in rank_file_list:
-        contents = open(os.path.join(rank_path,file),"r").readlines()
+        contents = open(os.path.join(rank_path, file), "r").readlines()
         for content in contents:
             content = content.split(" ")
             sequence = content[0]
@@ -203,8 +201,9 @@ def get_concat_rank_top_k(k):
     ind = np.argsort(rank_results)[:k]
     for i in ind:
         topk_seq.append(sequences[i])
-        
+
     return topk_seq
+
 
 if __name__ == "__main__":
     get_concat_rank_top_500()
