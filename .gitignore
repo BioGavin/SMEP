@@ -1,7 +1,5 @@
 /data/filtered_data/*
 /customized_code
-/sample
-!/sample/data_for_search.csv
 /results
 /params
 /prediction_results
