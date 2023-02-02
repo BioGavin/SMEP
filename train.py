@@ -113,10 +113,10 @@ class LstmTrain():
                 if label_o[i] <= np.log10(8196) - 0.01:
                     label.append(label_o[i])
                     pred.append(predict[i])
-            mse_result_all = mean_squared_error(label_o, predict)
-            mse_result_pos = mean_squared_error(label, pred)
-            r2_result_all = r2_score(label_o, predict)
-            r2_result_pos = r2_score(label, pred)
+            mse_result_all = mean_squared_error(label_o, predict)  # 所有数据的均方误差MSE
+            mse_result_pos = mean_squared_error(label, pred)  # 阳性数据的均方误差MSE
+            r2_result_all = r2_score(label_o, predict)  # 所有数据的决定系数r2
+            r2_result_pos = r2_score(label, pred)  # 阳性数据的决定系数r2
             test_loss_all.append(mse_result_all)
             test_loss_pos.append(mse_result_pos)
             test_r2_all.append(r2_result_all)

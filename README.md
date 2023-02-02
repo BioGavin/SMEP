@@ -110,9 +110,7 @@ python3 train.py -md lstm --train_lstm_file sample/regression_train_sample.csv -
 - Incremental learning
 
 ```bash
-python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/finetune
-
-python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path ft
+python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/finetune.pth
 ```
 
 - Predict
