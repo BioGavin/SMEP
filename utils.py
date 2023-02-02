@@ -52,23 +52,29 @@ def df2list(data_filter, varible, label, l_type, ngram_num, log_num=2):
     all_data = []
     for i in data_filter.iterrows():
         tmp = []
-        if len(list(i[1][varible])) <= 50:
-            tmp.append(create_ngram_list(i[1][varible], ngram_num))  # i[1][varible]是sequence
-        else:
+        if len(list(i[1][varible])) <= 50:  # 如果序列长度小于等于50
+            # 将sequence拆分成长度为ngram_num的词，构成一个分词列表，添加到tmp里
+            tmp.append(create_ngram_list(i[1][varible], ngram_num))  # i[1][varible]是sequence，
+        else:  # 如果序列长度大于50，则只取序列的前50个字母，构建分词列表
             tmp.append(create_ngram_list(i[1][varible][0:49], ngram_num))
         if log_num == 2:
             tmp.append(float(np.log2(float(i[1][label]))))
             tmp.append(i[1][l_type])
             tmp.append(len(tmp[0]))
         elif log_num == 10:
-            tmp.append(float(np.log10(float(i[1][label]))))
-            tmp.append(i[1][l_type])
-            tmp.append(len(tmp[0]))
+            tmp.append(float(np.log10(float(i[1][label]))))  # 将MIC值取log10对数
+            tmp.append(i[1][l_type])  # 添加type值
+            tmp.append(len(tmp[0]))  # 添加分词列表长度
         else:
             tmp.append(i[1][label])
             tmp.append(i[1][l_type])
             tmp.append(len(tmp[0]))
         all_data.append(tmp)
+    """all_data 数据内容：
+    [[[分词列表],log10MIC, type0or1, len(分词列表)],
+     [[分词列表],log10MIC, type0or1, len(分词列表)]，
+     [[分词列表],log10MIC, type0or1, len(分词列表)]]
+    """
     return all_data
 
 

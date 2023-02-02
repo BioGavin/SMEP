@@ -123,13 +123,15 @@ python3 ../featured_data_generated/cal_pep_des.py
 
 # predict
 mkdir prediction_results
-python3 predict.py --lstm_param_path params/finetune --lstm_result_save_path prediction_results --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv --predict_xgb_classifier_file sample/data_for_search.csv --save_xgb_classify_result True
+python3 predict.py --lstm_param_path params/finetune --result_save_path prediction_results --train_xgb_file sample/classification_train_sample.csv --test_xgb_file sample/classification_test_sample.csv --predict_xgb_classifier_file sample/data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
 ```
 
+In `prediction_results` folder:
 
+`classifier_feature_data.csv`: Positive result data predicted by XGBoost classification model.
 
-`prediction_results/classifier_feature_data.csv`: Positive result data predicted by XGBoost classification model.
+`xgboost_classify.txt`: Positive sequences predicted by XGBoost classification model.
 
-`prediction_results/xgboost_classify.txt`: Positive sequences predicted by XGBoost classification model.
+`top_500.csv`: The top 500 sequences predicted by the XGBoost sorting model.
 
-`prediction_results/top_500.csv`: The top 500 sequences predicted by the XGBoost sorting model.
+`lstm_result.csv`: MIC results predicted by LSTM model.

@@ -25,10 +25,20 @@ class LstmTrain():
     def __init__(self, train_file, test_file):
         self.net = LstmNet(embedding_dim, hidden_num, num_layer, bidirectional, dropout, get_dict())
         self.net.to(device)
-
+        # 读取训练数据，数据共有3列，分别是[sequence, MIC, type]
         train_data = pd.read_csv(train_file, encoding="utf-8").reset_index(drop=True)
-        train_data = df2list(train_data, "sequence", "MIC", "type", ngram_num, log_num)
+        train_data = df2list(train_data, "sequence", "MIC", "type", ngram_num, log_num)  # 将训练数据格式化
+        # 构建数据集，一个数据单元由4部分构成，第一是序列的one-hot表示，定长50，不足补零；第二是log10MIC；第三是type值，0or1；第四是序列长度
         train_dataset = PeptideDataset(train_data)
+        # 数据加载，决定输入网络的数据形式，每次输入batch_size个数据
+        # 一个batch_size的数据内容为：[tensor(序列),
+        #                           tensor(log10MIC),
+        #                           tensor(type),
+        #                           tensor(序列长度)]
+        # 一个batch_size的数据维度为：[torch.Size([batch_size, 50]),
+        #                           torch.Size([batch_size, 1]),
+        #                           torch.Size([batch_size]),
+        #                           torch.Size([batch_size])]
         self.train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False)
 
         test_data = pd.read_csv(test_file, encoding="utf-8").reset_index(drop=True)
@@ -61,9 +71,9 @@ class LstmTrain():
             count = 0
             self.net.train()
             for idx, batch in enumerate(tqdm(self.train_dataloader)):
-                text = batch[0]
-                label = batch[1]
-                length = batch[3]
+                text = batch[0]  # torch.Size([batch_size, 50])
+                label = batch[1]  # torch.Size([batch_size, 1])
+                length = batch[3]  # torch.Size([batch_size])
                 text = text.to(device)
                 label = label.to(device)
                 out = self.net(text, length)

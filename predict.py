@@ -38,7 +38,6 @@ class Predict():
         dataframe.sort_values("MIC", inplace=True)
         dataframe.reset_index(drop=True, inplace=True)
         self.sequence = dataframe["sequence"].values[0:500]
-        print(self.sequence)
         dataframe.iloc[:500, :].to_csv(os.path.join(self.lstm_result_save_path, "top_500.csv"))
         # 3. LSTM 回归模型预测
         self.lstm_preidct()
@@ -100,6 +99,7 @@ class Predict():
             net.load_state_dict(torch.load(self.param_path, map_location=torch.device('cpu')))
         net.to(device)
         net.eval()
+        # 构建数据集，dataset中每个单元由2个元素的元组构成，第一个是对序列的one-hot编码，第二个是序列的长度。
         dataset = PredictDataset(self.sequence)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
         sequence = []

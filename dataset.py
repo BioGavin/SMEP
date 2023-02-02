@@ -4,20 +4,28 @@ from utils import get_dict, build_index
 import numpy as np
 import pandas as pd
 
+
 class PredictDataset(Dataset):
     def __init__(self, file):
         super().__init__()
         Letter_dict = get_dict()
         self.dataset = []
+        self.length = []
         for sequence in file:
-            self.dataset.append([Letter_dict[i] for i in sequence.strip()])
-        print("total_sample:", len(self.dataset))
+            sequence = sequence.strip()
+            self.length.append(len(sequence))
+            tmp_s = [Letter_dict[i] for i in sequence]
+            if len(sequence) < 50:
+                npi = np.zeros((50 - len(sequence)), dtype=np.int)
+                tmp_s.extend(npi)
+            self.dataset.append(tmp_s)
+        print("total_predicted_sample:", len(self.dataset))
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, item):
-        length = len(self.dataset[item])
+        length = self.length[item]
         text = self.dataset[item]
         return torch.tensor(text), torch.tensor(length)
 
@@ -48,7 +56,7 @@ class PeptideDataset(Dataset):
         target = self.target[index]
         data_type = self.data_type[index]
         length = self.length[index]
-        if len(sequence) < 50:                          
+        if len(sequence) < 50:
             npi = np.zeros((50 - len(sequence)), dtype=np.int)
             sequence.extend(npi)
         return torch.tensor(sequence), torch.tensor([target]), data_type, length
