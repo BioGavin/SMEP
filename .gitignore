@@ -1,8 +1,6 @@
 /data/filtered_data/*
 /customized_code
 /results
-/params/*
+/params/*.pth
 !/params/finetune.pth
 /prediction_results
-/test/*.txt
-!/test/test.txt
