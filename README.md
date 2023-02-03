@@ -121,7 +121,7 @@ python3 ../featured_data_generated/cal_pep_des.py sample/raw_data_for_search.csv
 
 # predict
 mkdir prediction_results
-python3 predict.py --lstm_param_path params/finetune --result_save_path prediction_results --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv --predict_xgb_classifier_file sample/featured_data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
+python3 predict.py --lstm_param_path params/finetune.pth --result_save_path prediction_results --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv --predict_xgb_classifier_file sample/featured_data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
 ```
 
 In `prediction_results` folder:

@@ -4,3 +4,4 @@
 /params/*.pth
 !/params/finetune.pth
 /prediction_results
+/__pycache__
