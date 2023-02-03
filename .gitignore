@@ -4,5 +4,5 @@
 /params/*
 !/params/finetune.pth
 /prediction_results
-/test
+/test/*.txt
 !/test/test.txt
