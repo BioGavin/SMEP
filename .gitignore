@@ -2,4 +2,5 @@
 /customized_code
 /results
 /params
+!/params/finetune.pth
 /prediction_results

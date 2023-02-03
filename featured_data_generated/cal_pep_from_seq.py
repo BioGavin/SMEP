@@ -1,4 +1,4 @@
-from . import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
+import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
 import pandas as pd
 import numpy as np
 import sys
@@ -31,4 +31,4 @@ def cal_pep(peptide):
 
 
 if __name__ == "__main__":
-    tmp = cal_pep("RIWVIWRR").values
+    tmp = cal_pep("RIWVIWRR").values()

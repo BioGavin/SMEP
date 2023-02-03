@@ -117,11 +117,11 @@ python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train
 
 ```bash
 # Generate structual data for sequences
-python3 ../featured_data_generated/cal_pep_des.py
+python3 ../featured_data_generated/cal_pep_des.py sample/raw_data_for_search.csv sample/featured_data_for_search.csv
 
 # predict
 mkdir prediction_results
-python3 predict.py --lstm_param_path params/finetune --result_save_path prediction_results --train_xgb_file sample/classification_train_sample.csv --test_xgb_file sample/classification_test_sample.csv --predict_xgb_classifier_file sample/data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
+python3 predict.py --lstm_param_path params/finetune --result_save_path prediction_results --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv --predict_xgb_classifier_file sample/featured_data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
 ```
 
 In `prediction_results` folder:
@@ -130,6 +130,7 @@ In `prediction_results` folder:
 
 `xgboost_classify.txt`: Positive sequences predicted by XGBoost classification model.
 
-`top_500.csv`: The top 500 sequences predicted by the XGBoost sorting model.
+`top_500.csv`: The top 500 sequences predicted by the XGBoost sorting model. The MIC value is obtained by taking log10.
 
 `lstm_result.csv`: MIC results predicted by LSTM model.
+

@@ -1,4 +1,4 @@
-from featured_data_generated import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
+import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
 import pandas as pd
 import numpy as np
 import sys
@@ -46,16 +46,15 @@ def write2csv(sequence, input_data, result, type, output_path):
     # print(input_data[0])
     df = pd.DataFrame(input_data)
     output_csv = pd.concat([sequence, df, result, type], axis=1)
-    output_csv.to_csv(output_path, encoding="utf8")
+    output_csv.to_csv(output_path, encoding="utf8", index=False)
 
 
 if __name__ == "__main__":
     # file = "/home/xuyanchao/peptide_selection/datasets/all_data_with_negative_features.csv"
-    file = "./classify_sample.csv"
-    data = pd.read_csv(file, encoding="utf-8")
+    inp, out = sys.argv[1:3]
+    data = pd.read_csv(inp, encoding="utf-8")
     sequence = data["sequence"]
     peptides = sequence.values.copy().tolist()
-    result = data["MIC"]
-    type = data["type"]
-    output_path = "./regression_feature.csv"
-    cal_pep(peptides, sequence, result, type, output_path)
+    result = None
+    type = None
+    cal_pep(peptides, sequence, result, type, out)
