@@ -15,7 +15,7 @@ class Predict():
         self.lstm_result_save_path = lstm_result_save_path
         if not os.path.exists(self.lstm_result_save_path):
             os.mkdir(self.lstm_result_save_path)
-        self.predict_xgb_classifer_file = predict_xgb_classifer_file
+        self.predict_xgb_classifer_file = predict_xgb_classifer_file  # 用于预测的结构化的数据
         self.param_path = lstm_param_path
         self.train_xgb_file = train_xgb_file
         self.test_xgb_file = test_xgb_file
@@ -30,8 +30,8 @@ class Predict():
                 f.write("\n")
             f.close()
         # 2. XGBoost 排序模型预测
-        xgb_rank_model = self.get_xgb_rank_model()
-        xgb_rank_result = xgb_rank_model.predict(pos_feature_data.iloc[:, 1:].values)
+        xgb_rank_model = self.get_xgb_rank_model()  # 获取 xgb 排序模型
+        xgb_rank_result = xgb_rank_model.predict(pos_feature_data.iloc[:, 1:].values)  # 利用 xgb 排序模型预测 MIC 值
         dataframe = pd.DataFrame([])
         dataframe["sequence"] = pos_feature_data["sequence"].copy()
         dataframe["MIC"] = xgb_rank_result
@@ -44,7 +44,8 @@ class Predict():
 
     def xgb_classifier_predict(self):
         xgb_cls_model = self.get_xgb_classifier_model()  # 获取 xgb 分类器模型
-        data_test = pd.read_csv(self.predict_xgb_classifer_file, chunksize=50000, encoding="utf-8", low_memory=False)
+        data_test = pd.read_csv(self.predict_xgb_classifer_file, chunksize=50000, encoding="utf-8", low_memory=False,
+                                index_col=0)
         df = pd.DataFrame([])
         for chunk in data_test:
             y = xgb_cls_model.predict(chunk.iloc[:, 1:].values)

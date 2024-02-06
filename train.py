@@ -26,7 +26,7 @@ class LstmTrain():
         self.net = LstmNet(embedding_dim, hidden_num, num_layer, bidirectional, dropout, get_dict())
         self.net.to(device)
         # 读取训练数据，数据共有3列，分别是[sequence, MIC, type]
-        train_data = pd.read_csv(train_file, encoding="utf-8").reset_index(drop=True)
+        train_data = pd.read_csv(train_file, encoding="utf-8", index_col=0).reset_index(drop=True)
         train_data = df2list(train_data, "sequence", "MIC", "type", ngram_num, log_num)  # 将训练数据格式化
         # 构建数据集，一个数据单元由4部分构成，第一是序列的one-hot表示，定长50，不足补零；第二是log10MIC；第三是type值，0or1；第四是序列长度
         train_dataset = PeptideDataset(train_data)
@@ -41,7 +41,7 @@ class LstmTrain():
         #                           torch.Size([batch_size])]
         self.train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False)
 
-        test_data = pd.read_csv(test_file, encoding="utf-8").reset_index(drop=True)
+        test_data = pd.read_csv(test_file, encoding="utf-8", index_col=0).reset_index(drop=True)
         test_data = df2list(test_data, "sequence", "MIC", "type", ngram_num, log_num)
         test_dataset = PeptideDataset(test_data)
         self.test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)

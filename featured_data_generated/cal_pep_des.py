@@ -1,4 +1,4 @@
-import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
+from . import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
 import pandas as pd
 import numpy as np
 import sys
@@ -6,14 +6,15 @@ import sys
 """
 小批量结构化数据生成
 """
-def cal_pep(peptides, sequence, results, type, output_path):
+
+
+def cal_pep(peptides, sequence, results, types):
     peptides_descriptors = []
     count = 0
-    temp = 0
-
+    # temp = 0
     for peptide in peptides:
         if len(peptide) < 6:
-            continue
+            raise Exception("Peptide length is unsuitable.")
         peptides_descriptor = {}
         peptide = str(peptide)
         AAC = AAComposition.CalculateAAComposition(peptide)
@@ -34,17 +35,25 @@ def cal_pep(peptides, sequence, results, type, output_path):
         peptides_descriptor.update(Basic)
         peptides_descriptors.append(peptides_descriptor)
 
-        if count % 100 == 0:
+        if count % 1000 == 0:
             print("No.%d  Peptide: %s" % (count, peptide))
         count += 1
-        # print(count)
-    # write2csv(sequence,peptides_descriptors,results,"/home/xuyanchao/peptide_selection/datasets/all_data_with_negative_features.csv")
-    write2csv(sequence, peptides_descriptors, results, type, output_path)
+    print(count)
+    feature_df = pd.DataFrame(peptides_descriptors)
+    feature_df.to_csv("task/peptides_descriptors.csv", index=False)
+    print(f"feature shape: {feature_df.shape}")
+    print(f"sequence shape: {len(sequence)}")
+    output_df = pd.concat([sequence, feature_df, results, types], axis=1)
+    return output_df
+
+    # write2csv(sequence, peptides_descriptors, results, type, output_path)
 
 
 def write2csv(sequence, input_data, result, type, output_path):
     # print(input_data[0])
     df = pd.DataFrame(input_data)
+    print(f"feature shape: {df.shape}")
+    print(f"sequence shape: {len(sequence)}")
     output_csv = pd.concat([sequence, df, result, type], axis=1)
     output_csv.to_csv(output_path, encoding="utf8", index=False)
 
@@ -53,8 +62,11 @@ if __name__ == "__main__":
     # file = "/home/xuyanchao/peptide_selection/datasets/all_data_with_negative_features.csv"
     inp, out = sys.argv[1:3]
     data = pd.read_csv(inp, encoding="utf-8")
+    data = data[data["sequence"].apply(lambda x: 5 < len(x) < 50)]
     sequence = data["sequence"]
     peptides = sequence.values.copy().tolist()
-    result = None
-    type = None
-    cal_pep(peptides, sequence, result, type, out)
+    print(f"length of peptides: {len(peptides)}")
+    results = None
+    types = None
+    output_df = cal_pep(peptides, sequence, results, types)
+    output_df.to_csv(out, encoding="utf-8")

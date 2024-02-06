@@ -1,7 +1,6 @@
-/data/filtered_data/*
-/customized_code
 /results
 /params/*.pth
 !/params/finetune.pth
 /prediction_results
 /__pycache__
+/sample

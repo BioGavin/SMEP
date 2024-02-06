@@ -107,6 +107,6 @@ if __name__ == "__main__":
     grampa_path = "./data/origin_data/grampa.csv"
     negative_file_path = "./data/origin_data/origin_negative.csv"
     generate_example_path = "./sample/"
-    mode = "all"
+    mode = ""
     generate_sample = GenerateSample(grampa_path, negative_file_path, generate_example_path, mode)
     generate_sample()

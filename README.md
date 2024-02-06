@@ -82,7 +82,7 @@ pip install -r requirements.txt
 
 ```bash
 mkdir sample
-python3 generate_sample.py
+python3 generate_dataset.py
 ```
 
 - Train classification model
@@ -90,34 +90,39 @@ python3 generate_sample.py
 ```bash
 mkdir params
 mkdir -p results/xgb_classifier_result
-python3 train.py -md xgb_classifier --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv > results/xgb_classifier_result/xgb_classifier_train.log
+python3 train.py -md xgb_classifier --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_train_sample.csv > results/xgb_classifier_result/xgb_classifier_train.log
 ```
 
 - Train ranking model
 
 ```bash
 mkdir -p results/xgb_rank_result
-python3 train.py -md xgb_rank --train_xgb_file sample/classify_sample.csv --test_xgb_file sample/classify_sample.csv > results/xgb_rank_result/xgb_rank_train.log
+python3 train.py -md xgb_rank --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv > results/xgb_rank_result/xgb_rank_train.log
 ```
 
 - Train regression model
 
 ```bash
 mkdir -p results/lstm_result/regress
-python3 train.py -md lstm --train_lstm_file sample/regression_train_sample.csv --test_lstm_file sample/regression_test_sample.csv > results/lstm_result/lstm_result_train.log
+python3 train.py -md lstm --train_lstm_file sample/lstm_train_sample.csv --test_lstm_file sample/lstm_test_sample.csv > results/lstm_result/lstm_result_train.log
 ```
 
 - Incremental learning
 
 ```bash
-python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_28.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/finetune.pth
+mkdir -p results/incremental_learning
+python3 lstm_fine_tune.py --lstm_param_path params/regress_allmse_xx.pth --train_file_path data/origin_data/new_data_67.csv --save_parm_path params/finetune.pth > results/incremental_learning/incremental_learning.log
 ```
 
 - Predict
 
 ```bash
+# Generate sequences for searching
+cd sequence_generated && mkdir 7_peptide_result
+python3 sequence_generated.py
+
 # Generate structual data for sequences
-python3 ../featured_data_generated/cal_pep_des.py sample/raw_data_for_search.csv sample/featured_data_for_search.csv
+python3 featured_data_generated/cal_pep_des.py sample/raw_data_for_search.csv sample/featured_data_for_search.csv
 
 # predict
 mkdir prediction_results
@@ -134,3 +139,84 @@ In `prediction_results` folder:
 
 `lstm_result.csv`: MIC results predicted by LSTM model.
 
+
+
+- Predict followed by cAMP
+
+```bash
+python3 gen_featured_data_for_cAMP.py task/camp.pos.tsv task/camp.pos.filtered.tsv task/camp.pos.filtered_featured_data.csv
+mkdir -p task/prediction_results
+python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task/prediction_results --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv --predict_xgb_classifier_file task/camp.pos.filtered_featured_data.csv --save_xgb_classify_result True > task/prediction_results/predict.log
+```
+
+
+
+# Notes
+
+## Datasets
+
+- Positive dataset: Grampa数据集 (`data/origin_data/grampa.csv`) 包含了来自多个开放源数据集（如APD、DADP、DBAASP、DRAMP和YADAMP）的共计51,345个肽段实验结果。在数据预处理过程中，只选择了标准化的C-末端酰胺氨基酸序列，并使用Python数据分析库Pandas和Numpy工具包去除了长度超过50或少于5的异常值。此外，只保留了标记为对*S. aureus*具有特定活性的数据。对于同一抗菌肽标记的两个或更多冲突的最小抑菌浓度（MIC）值，采用了简单的几何平均策略得到最终的细菌-抗菌肽测量值。最终，Grampa数据集的预处理得到了1,762个阳性样本 (`data/filtered_data/positive.csv`) 
+- Negative dataset: 5898个没有抗菌活性的负样本 (`data/filtered_data/negative.csv`) 是从UniProt数据库 (http://www.uniprot.org/)获取的 (`data/origin_data/origin_negative.csv`)，序列长度小于等于40，没有"抗菌"的标签。为了训练ranking和regression模型，我们给所有的负样本标上了一个模拟的MIC值，8192 μg/mL。采用了75:15:10的比例进行训练/验证/测试划分。为了数值调整，我们对输出目标空间进行了log10操作以进行平滑处理。
+
+- Wet-lab dataset: 由于实验和环境的差异，Grampa数据集很可能存在噪声和偏差。因此，我们随机选择了67个来自正样本集的肽，并验证了它们的湿实验。事实上，我们发现其中一些肽的MIC值与Grampa数据集提供的相对应值有些不同。因此，我们使用这67个来自我们内部来源的正样本 (`data/origin_data/new_data_67.csv` / `data/filtered_data/experimental.csv`) 来进一步微调我们的模型，采用增量学习框架。
+
+
+
+## Peptide encoding
+
+- structured or tabularized data: 应用一些基本的描述符和伪氨基酸组成（PseAAC）描述符。最终的描述符涵盖了基本字符、氨基酸组成、自相关性、物理化学组成、准序列顺序和伪氨基酸组成，得到了长度为676的描述符。
+- word-embedding: 将数据集中的每个肽序列都转换为一个矩阵𝑚×𝑑维的实数空间，𝑚是给定肽的长度，𝑑是嵌入的维度。
+
+
+
+## Empirical selection
+
+- 肽的净电荷是正电荷：因此，正的氨基酸残基(AAR)的数量大于负的AAR的数量。
+- 肽具有特殊的两亲结构：一般来说，有两种构建两亲结构的模型。在第一个模型中，所有亲水性AARs和疏水性AARs都聚集在两侧。而在第二种模型中，疏水AARs与亲水性AARs在每2-3个残基上穿插。所有满足的肽都是由python脚本 (`sequence_generated/sequence_generated.py`) 生成的。
+
+
+
+## Classification Model
+
+- 对于XGBoost-tab模型，我们采用了标准化的实现，并对所有潜在的超参数设置进行了网格搜索。
+- 我们发现XGBoost-tab模型的较小深度可以改善相应的性能，最终我们选择了以下超参数：modeldepth=4，number-of-estimators=600，learning-rate=0.1。
+
+### training and test
+
+- 训练数据？？
+
+- 各模型的测试结果如下（见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet a）
+
+|             | Accuracy | F1 Score | Precision | Recall |
+| ----------- | -------- | -------- | --------- | ------ |
+| XGBoost-tab | 0.9723   | 0.929    | 0.9422    | 0.9209 |
+| LSTM-seq    | 0.9738   | 0.937    | 0.9243    | 0.95   |
+| CNN-seq     | 0.9681   | 0.9247   | 0.8958    | 0.9556 |
+| RF-tab      | 0.8247   | 0.2537   | 1         | 0.1412 |
+
+## Ranking Model
+
+- 直接在原始搜索空间上运行Ranking模型的计算成本是非常高的，因此在漏斗中的第一阶段使用了粗粒度的Classification模型来有效地减少搜索空间。
+
+### training and test
+
+- 训练数据？？
+- 测试数据用了177条序列，测试结果见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet d
+
+
+
+## Regression Model
+
+- LSTM-seq模型被选定为最终的回归模型，它在全局和top-k-MSE得分方面表现出色。
+- 在训练过程中，采用了L2损失作为回归任务的损失函数。还引入了top-k MSE来更好地评估具有高抗菌活性的肽段的回归能力。具体来说，从测试集中选择了最小MIC标签的k个样本，然后计算这些样本的MSE，以获得top-k MSE的测量值。
+
+### training and test
+
+- 各模型的测试结果见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet e，用于测试的序列数据见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet f
+
+
+
+## Incremental learning
+
+- 通过增量学习将模型参数调整到适应当前实验室条件，以便更准确地预测MIC值。
+- 增量学习过程采用了简单的微调方法，通过在源域和目标域之间进行领域适应，以最大程度地适应目标域。最终，通过网格搜索找到了最佳模型和过程的参数配置。
