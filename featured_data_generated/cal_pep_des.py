@@ -1,7 +1,11 @@
-from . import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+
+import BasicDes, Autocorrelation, CTD, PseudoAAC, AAComposition, QuasiSequenceOrder
 import pandas as pd
 import numpy as np
-import sys
 
 """
 小批量结构化数据生成
@@ -40,7 +44,6 @@ def cal_pep(peptides, sequence, results, types):
         count += 1
     print(count)
     feature_df = pd.DataFrame(peptides_descriptors)
-    feature_df.to_csv("task/peptides_descriptors.csv", index=False)
     print(f"feature shape: {feature_df.shape}")
     print(f"sequence shape: {len(sequence)}")
     output_df = pd.concat([sequence, feature_df, results, types], axis=1)

@@ -122,11 +122,11 @@ cd sequence_generated && mkdir 7_peptide_result
 python3 sequence_generated.py
 
 # Generate structual data for sequences
-python3 featured_data_generated/cal_pep_des.py sample/raw_data_for_search.csv sample/featured_data_for_search.csv
+python3 ../featured_data_generated/cal_pep_des.py 7_peptide_result/7_peptide_rule_0.txt 7_peptide_result/7_peptide_rule_0.csv
 
 # predict
 mkdir prediction_results
-python3 predict.py --lstm_param_path params/finetune.pth --result_save_path prediction_results --train_xgb_file sample/xgb_train_sample.csv --test_xgb_file sample/xgb_test_sample.csv --predict_xgb_classifier_file sample/featured_data_for_search.csv --save_xgb_classify_result True > prediction_results/predict.log
+python3 ../predict.py --lstm_param_path ../params/finetune.pth --result_save_path prediction_results --train_xgb_file ../sample/xgb_train_sample.csv --test_xgb_file ../sample/xgb_test_sample.csv --predict_xgb_classifier_file 7_peptide_result/7_peptide_rule_0.csv --save_xgb_classify_result True > prediction_results/predict.log
 ```
 
 In `prediction_results` folder:
