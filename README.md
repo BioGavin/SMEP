@@ -151,7 +151,7 @@ python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task
 
 
 
-# Notes
+# Note
 
 ## Datasets
 
@@ -181,7 +181,7 @@ python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task
 - 对于XGBoost-tab模型，我们采用了标准化的实现，并对所有潜在的超参数设置进行了网格搜索。
 - 我们发现XGBoost-tab模型的较小深度可以改善相应的性能，最终我们选择了以下超参数：modeldepth=4，number-of-estimators=600，learning-rate=0.1。
 
-### training and test
+### train and test
 
 - 训练数据？？
 
@@ -194,11 +194,13 @@ python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task
 | CNN-seq     | 0.9681   | 0.9247   | 0.8958    | 0.9556 |
 | RF-tab      | 0.8247   | 0.2537   | 1         | 0.1412 |
 
+
+
 ## Ranking Model
 
 - 直接在原始搜索空间上运行Ranking模型的计算成本是非常高的，因此在漏斗中的第一阶段使用了粗粒度的Classification模型来有效地减少搜索空间。
 
-### training and test
+### train and test
 
 - 训练数据？？
 - 测试数据用了177条序列，测试结果见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet d
@@ -210,7 +212,7 @@ python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task
 - LSTM-seq模型被选定为最终的回归模型，它在全局和top-k-MSE得分方面表现出色。
 - 在训练过程中，采用了L2损失作为回归任务的损失函数。还引入了top-k MSE来更好地评估具有高抗菌活性的肽段的回归能力。具体来说，从测试集中选择了最小MIC标签的k个样本，然后计算这些样本的MSE，以获得top-k MSE的测量值。
 
-### training and test
+### train and test
 
 - 各模型的测试结果见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet e，用于测试的序列数据见表 `SI/41551_2022_991_MOESM6_ESM.xlsx` sheet f
 
@@ -220,3 +222,27 @@ python3 predict.py --lstm_param_path params/finetune.pth --result_save_path task
 
 - 通过增量学习将模型参数调整到适应当前实验室条件，以便更准确地预测MIC值。
 - 增量学习过程采用了简单的微调方法，通过在源域和目标域之间进行领域适应，以最大程度地适应目标域。最终，通过网格搜索找到了最佳模型和过程的参数配置。
+
+
+
+## Model evaluation
+
+```
+===XGBoost Classification Model===
+xgb_classfier_Accuracy : 0.9722
+xgb_classfier_F1-score : 0.9412
+
+===XGBoost Ranking Model===
+xgb_rank_model top50: 0.44
+xgb_rank_model top100: 0.68
+xgb_rank_model top500: 0.8
+
+===LSTM Regression Model===
+Best MSE Error all 0.265339
+Best MSE Error pos: 0.762097
+Best R2 Error all: 0.808578
+Best R2 Error pos: -0.647839
+Best Top 20: 2.585441
+Best Top 60: 1.292800
+```
+
