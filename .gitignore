@@ -4,3 +4,6 @@
 /prediction_results
 /__pycache__
 /sample
+
+/tianchi-proj/data/*
+/tianchi-proj/__pycache__/*

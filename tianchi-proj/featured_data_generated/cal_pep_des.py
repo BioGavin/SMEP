@@ -15,9 +15,9 @@ import numpy as np
 def cal_pep(peptides, sequence, results, types, output_path):
     peptides_descriptors = []
     count = 0
-    # temp = 0
     for peptide in peptides:
-        if len(peptide) < 6:
+        if len(peptide) < 5:
+            print("Peptide length is unsuitable.")
             raise Exception("Peptide length is unsuitable.")
         peptides_descriptor = {}
         peptide = str(peptide)
@@ -48,14 +48,11 @@ def cal_pep(peptides, sequence, results, types, output_path):
     print(f"sequence shape: {len(sequence)}")
     output_df = pd.concat([sequence, feature_df, results, types], axis=1)
     if output_path:
-        write2csv(sequence, peptides_descriptors, results, type, output_path)
+        output_df.to_csv(output_path, encoding="utf8", index=False)
     return output_df
-
-    
 
 
 def write2csv(sequence, input_data, result, type, output_path):
-    # print(input_data[0])
     df = pd.DataFrame(input_data)
     print(f"feature shape: {df.shape}")
     print(f"sequence shape: {len(sequence)}")
