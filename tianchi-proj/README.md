@@ -106,6 +106,5 @@ class LstmNet(nn.Module):
 
         return out
 
-现在注释更简洁了，每个步骤都概述了核心功能。如果还需要更简化或有其他问题，告诉我！
 ```
 
